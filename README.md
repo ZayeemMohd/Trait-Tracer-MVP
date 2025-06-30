@@ -14,7 +14,7 @@ Trait-Tracer is an innovative AI-powered recruitment platform that revolutionize
 
 ## 🚀 Live Demo
 
-[**Try Trait-Tracer MVP**](https://your-deployment-url.vercel.app) *(Replace with your actual deployment URL)*
+[**Try Trait-Tracer MVP**](https://trait-tracer.netlify.app/) *(Replace with your actual deployment URL)*
 
 ---
 
