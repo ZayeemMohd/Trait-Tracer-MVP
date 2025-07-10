@@ -21,19 +21,43 @@ function AppContent() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && user && userType) {
+    // Only handle navigation after auth state is fully resolved
+    if (!loading && user) {
       const currentPath = window.location.pathname;
       
       // If user is on auth page and successfully authenticated, redirect to appropriate dashboard
       if (currentPath.includes('/auth')) {
-        if (userType === 'recruiter') {
-          navigate('/recruiter/organizations');
-        } else if (userType === 'candidate') {
-          navigate('/candidate/dashboard');
-        }
+        // Add a small delay to ensure state is fully updated
+        setTimeout(() => {
+          if (userType === 'recruiter') {
+            navigate('/recruiter/organizations');
+          } else if (userType === 'candidate') {
+            navigate('/candidate/dashboard');
+          }
+        }, 100);
+      }
+    }
+    
+    // Handle case where user is authenticated but profile loading failed
+    if (!loading && user && !userType) {
+      const currentPath = window.location.pathname;
+      if (currentPath.includes('/auth')) {
+        setError('Unable to load user profile. Please try again.');
       }
     }
   }, [user, userType, loading, navigate]);
+
+  // Show loading screen while auth is being resolved
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        }
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

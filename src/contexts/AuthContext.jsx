@@ -41,6 +41,7 @@ export function AuthProvider({ children }) {
 
   const loadUserProfile = async (userId) => {
     try {
+      setLoading(true);
       // Try to find user as recruiter first
       try {
         const { data: recruiter, error: recruiterError } = await db.getRecruiter(userId);
@@ -71,9 +72,13 @@ export function AuthProvider({ children }) {
 
       // User exists in auth but not in our tables - this shouldn't happen
       console.warn('User found in auth but not in database tables');
+      setUserProfile(null);
+      setUserType(null);
       setLoading(false);
     } catch (error) {
       console.error('Error loading user profile:', error);
+      setUserProfile(null);
+      setUserType(null);
       setLoading(false);
     }
   };

@@ -54,18 +54,20 @@ function AuthPage() {
         
         if (error) throw error;
 
-        // Don't navigate immediately - let auth state change handle it
+        // Success - auth state change will handle navigation
       } else {
         const { data, error } = await signIn(formData.email, formData.password);
         
         if (error) throw error;
 
-        // Don't navigate immediately - let auth state change handle it
+        // Success - auth state change will handle navigation
       }
     } catch (error) {
+      console.error('Authentication error:', error);
       setError(error.message);
-    } finally {
       setLoading(false);
+    } finally {
+      // Don't set loading to false here - let auth state change handle it
     }
   };
 
