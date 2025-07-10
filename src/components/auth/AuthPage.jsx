@@ -10,6 +10,7 @@ function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
@@ -28,6 +29,14 @@ function AuthPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setPasswordError('');
+
+    // Validate password length for sign up
+    if (isSignUp && formData.password.length < 6) {
+      setPasswordError('Password must be at least 6 characters long');
+      setLoading(false);
+      return;
+    }
 
     try {
       if (isSignUp) {
@@ -70,6 +79,11 @@ function AuthPage() {
   };
 
   const handleInputChange = (e) => {
+    // Clear password error when user types
+    if (e.target.name === 'password' && passwordError) {
+      setPasswordError('');
+    }
+    
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value
@@ -112,6 +126,13 @@ function AuthPage() {
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
               <p className="text-red-600 text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* Password Error */}
+          {passwordError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+              <p className="text-red-600 text-sm">{passwordError}</p>
             </div>
           )}
 
@@ -160,7 +181,7 @@ function AuthPage() {
             {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password *
+                Password * {isSignUp && <span className="text-xs text-gray-500">(minimum 6 characters)</span>}
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -168,9 +189,12 @@ function AuthPage() {
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   required
+                  minLength={isSignUp ? 6 : undefined}
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                    passwordError ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  }`}
                   placeholder="Enter your password"
                 />
                 <button

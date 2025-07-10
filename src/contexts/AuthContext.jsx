@@ -42,23 +42,31 @@ export function AuthProvider({ children }) {
   const loadUserProfile = async (userId) => {
     try {
       // Try to find user as recruiter first
-      const { data: recruiter, error: recruiterError } = await db.getRecruiter(userId);
-      
-      if (recruiter && !recruiterError) {
-        setUserProfile(recruiter);
-        setUserType('recruiter');
-        setLoading(false);
-        return;
+      try {
+        const { data: recruiter, error: recruiterError } = await db.getRecruiter(userId);
+        
+        if (recruiter && !recruiterError) {
+          setUserProfile(recruiter);
+          setUserType('recruiter');
+          setLoading(false);
+          return;
+        }
+      } catch (recruiterError) {
+        console.log('User not found in recruiters table, checking candidates...');
       }
 
       // Try to find user as candidate
-      const { data: candidate, error: candidateError } = await db.getCandidate(userId);
-      
-      if (candidate && !candidateError) {
-        setUserProfile(candidate);
-        setUserType('candidate');
-        setLoading(false);
-        return;
+      try {
+        const { data: candidate, error: candidateError } = await db.getCandidate(userId);
+        
+        if (candidate && !candidateError) {
+          setUserProfile(candidate);
+          setUserType('candidate');
+          setLoading(false);
+          return;
+        }
+      } catch (candidateError) {
+        console.log('User not found in candidates table either');
       }
 
       // User exists in auth but not in our tables - this shouldn't happen

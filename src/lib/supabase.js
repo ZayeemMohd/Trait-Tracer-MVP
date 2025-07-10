@@ -73,7 +73,7 @@ export const db = {
       .from('recruiters')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
     return { data, error };
   },
 
@@ -140,7 +140,7 @@ export const db = {
       .from('candidates')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
     return { data, error };
   },
 
