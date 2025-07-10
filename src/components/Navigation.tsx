@@ -82,7 +82,7 @@ function Navigation() {
                   <span>Sign Out</span>
                 </button>
               </div>
-            ) : isHome ? (
+            ) : (
               // Home page navigation for non-authenticated users
               <div className="flex space-x-3 lg:space-x-4">
                 <button
@@ -100,14 +100,6 @@ function Navigation() {
                   <span>For Candidates</span>
                 </button>
               </div>
-            ) : (
-              // Back to home for other pages
-              <Link
-                to="/"
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-sm sm:text-base"
-              >
-                Back to Home
-              </Link>
             )}
           </div>
           
@@ -169,7 +161,7 @@ function Navigation() {
                     <span>Sign Out</span>
                   </button>
                 </>
-              ) : isHome ? (
+              ) : (
                 // Home page mobile menu for non-authenticated users
                 <>
                   <button
@@ -193,15 +185,6 @@ function Navigation() {
                     <span>For Candidates</span>
                   </button>
                 </>
-              ) : (
-                // Back to home mobile menu
-                <Link
-                  to="/"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-lg font-medium transition-colors duration-200 text-center"
-                >
-                  Back to Home
-                </Link>
               )}
             </div>
           </div>

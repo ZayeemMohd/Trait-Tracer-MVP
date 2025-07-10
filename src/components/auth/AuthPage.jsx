@@ -54,22 +54,13 @@ function AuthPage() {
         
         if (error) throw error;
 
-        if (userType === 'recruiter') {
-          navigate('/recruiter/organizations');
-        } else {
-          navigate('/candidate/dashboard');
-        }
+        // Don't navigate immediately - let auth state change handle it
       } else {
         const { data, error } = await signIn(formData.email, formData.password);
         
         if (error) throw error;
 
-        // Navigation will be handled by auth state change
-        if (userType === 'recruiter') {
-          navigate('/recruiter/organizations');
-        } else {
-          navigate('/candidate/dashboard');
-        }
+        // Don't navigate immediately - let auth state change handle it
       }
     } catch (error) {
       setError(error.message);

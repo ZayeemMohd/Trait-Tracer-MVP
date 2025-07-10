@@ -80,7 +80,9 @@ export function AuthProvider({ children }) {
 
   const signUp = async (email, password, userData, type) => {
     try {
-      const { data, error } = await auth.signUp(email, password, userData);
+      const { data, error } = await auth.signUp(email, password, {
+        data: userData
+      });
       
       if (error) throw error;
 
@@ -95,9 +97,15 @@ export function AuthProvider({ children }) {
         if (type === 'recruiter') {
           const { error: profileError } = await db.createRecruiter(profileData);
           if (profileError) throw profileError;
+          
+          // Set user type immediately after successful creation
+          setUserType('recruiter');
         } else if (type === 'candidate') {
           const { error: profileError } = await db.createCandidate(profileData);
           if (profileError) throw profileError;
+          
+          // Set user type immediately after successful creation
+          setUserType('candidate');
         }
       }
 
