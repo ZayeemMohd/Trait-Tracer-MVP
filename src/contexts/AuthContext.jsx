@@ -127,14 +127,18 @@ export function AuthProvider({ children }) {
   const signOut = async () => {
     try {
       const { error } = await auth.signOut();
-      if (!error) {
-        setUser(null);
-        setUserProfile(null);
-        setUserType(null);
-        setSession(null);
-      }
+      // Always clear local state, even if there's an error
+      setUser(null);
+      setUserProfile(null);
+      setUserType(null);
+      setSession(null);
       return { error };
     } catch (error) {
+      // Clear local state even on error
+      setUser(null);
+      setUserProfile(null);
+      setUserType(null);
+      setSession(null);
       return { error };
     }
   };
