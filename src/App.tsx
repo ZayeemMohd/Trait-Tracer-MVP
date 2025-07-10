@@ -42,7 +42,7 @@ function AppContent() {
     if (!loading && user && !userType) {
       const currentPath = window.location.pathname;
       if (currentPath.includes('/auth')) {
-        setError('Unable to load user profile. Please try again.');
+        console.error('Unable to load user profile. Please try again.');
       }
     }
   }, [user, userType, loading, navigate]);
@@ -54,7 +54,7 @@ function AppContent() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
-        }
+        </div>
       </div>
     );
   }
@@ -127,9 +127,6 @@ function AppContent() {
 }
 
 function App() {
-        }
-    )
-  }
   return (
     <AuthProvider>
       <AppProvider>
