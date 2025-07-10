@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { AppProvider } from './context/AppContext';
 import { useAuth } from './contexts/AuthContext';
 import Navigation from './components/Navigation';
 import LandingPage from './pages/LandingPage';
@@ -104,9 +105,11 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
+      <AppProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </AppProvider>
     </AuthProvider>
   );
 }
