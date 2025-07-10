@@ -1,7 +1,28 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { Brain, Target, BarChart3, Users, Zap, Shield, CheckCircle, Star } from 'lucide-react';
 
 function LandingPage() {
+  const navigate = useNavigate();
+  const { user, userType } = useAuth();
+
+  const handleRecruiterClick = () => {
+    if (user && userType === 'recruiter') {
+      navigate('/recruiter/organizations');
+    } else {
+      navigate('/auth?type=recruiter');
+    }
+  };
+
+  const handleCandidateClick = () => {
+    if (user && userType === 'candidate') {
+      navigate('/candidate/dashboard');
+    } else {
+      navigate('/auth?type=candidate');
+    }
+  };
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -19,11 +40,19 @@ function LandingPage() {
               Make data-driven decisions and find the perfect cultural fit for your team.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
-              <button className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg transition-all duration-200 transform hover:scale-105 w-full sm:w-auto">
-                Start Free Trial
+              <button 
+                onClick={handleRecruiterClick}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg transition-all duration-200 transform hover:scale-105 w-full sm:w-auto flex items-center justify-center space-x-2"
+              >
+                <Users className="w-5 h-5" />
+                <span>For Recruiters</span>
               </button>
-              <button className="border-2 border-white text-white hover:bg-white hover:text-indigo-900 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg transition-all duration-200 w-full sm:w-auto">
-                Watch Demo
+              <button 
+                onClick={handleCandidateClick}
+                className="border-2 border-white text-white hover:bg-white hover:text-indigo-900 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg transition-all duration-200 w-full sm:w-auto flex items-center justify-center space-x-2"
+              >
+                <Users className="w-5 h-5" />
+                <span>For Candidates</span>
               </button>
             </div>
           </div>
@@ -287,11 +316,19 @@ function LandingPage() {
             Join thousands of companies using Trait-Tracer to make smarter hiring decisions
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
-            <button className="bg-white text-indigo-600 hover:bg-gray-100 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg transition-colors duration-200 w-full sm:w-auto">
-              Get Started Free
+            <button 
+              onClick={handleRecruiterClick}
+              className="bg-white text-indigo-600 hover:bg-gray-100 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg transition-colors duration-200 w-full sm:w-auto flex items-center justify-center space-x-2"
+            >
+              <Users className="w-5 h-5" />
+              <span>For Recruiters</span>
             </button>
-            <button className="border-2 border-white text-white hover:bg-white hover:text-indigo-600 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg transition-colors duration-200 w-full sm:w-auto">
-              Contact Sales
+            <button 
+              onClick={handleCandidateClick}
+              className="border-2 border-white text-white hover:bg-white hover:text-indigo-600 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg transition-colors duration-200 w-full sm:w-auto flex items-center justify-center space-x-2"
+            >
+              <Users className="w-5 h-5" />
+              <span>For Candidates</span>
             </button>
           </div>
         </div>

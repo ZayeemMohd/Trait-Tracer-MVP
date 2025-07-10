@@ -76,7 +76,7 @@ function Navigation() {
                 
                 <button
                   onClick={handleSignOut}
-                  className="text-gray-600 hover:text-gray-800 font-medium flex items-center space-x-1 cursor-pointer"
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-1 cursor-pointer"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>Sign Out</span>

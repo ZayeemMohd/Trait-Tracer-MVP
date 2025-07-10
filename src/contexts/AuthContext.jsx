@@ -126,19 +126,16 @@ export function AuthProvider({ children }) {
 
   const signOut = async () => {
     try {
-      const { error } = await auth.signOut();
-      // Always clear local state, even if there's an error
+      // Clear local state first
       setUser(null);
       setUserProfile(null);
       setUserType(null);
       setSession(null);
+      
+      const { error } = await auth.signOut();
       return { error };
     } catch (error) {
-      // Clear local state even on error
-      setUser(null);
-      setUserProfile(null);
-      setUserType(null);
-      setSession(null);
+      console.error('Sign out error:', error);
       return { error };
     }
   };
