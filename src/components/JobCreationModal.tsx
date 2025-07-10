@@ -1,29 +1,65 @@
 import React, { useState } from 'react';
-import { useApp } from '../context/AppContext';
+import { db } from '../lib/supabase';
 import { X, Plus } from 'lucide-react';
 
-function JobCreationModal({ onClose }) {
-  const { addJobOpening } = useApp();
+function JobCreationModal({ organizationId, onClose, onJobCreated }) {
   const [formData, setFormData] = useState({
     title: '',
-    company: '',
     description: '',
     requirements: [''],
-    skills: [''],
+    required_skills: [''],
     experience: 'Mid',
     type: 'Full-time',
     location: '',
     salary: ''
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const jobData = {
+        organization_id: organizationId,
+        title: formData.title,
+        description: formData.description,
+        requirements: formData.requirements.filter(req => req.trim() !== ''),
+        required_skills: formData.required_skills.filter(skill => skill.trim() !== ''),
+        experience_level: formData.experience,
+        employment_type: formData.type,
+        location: formData.location || null,
+        salary_range: formData.salary || null,
+        is_active: true
+      };
+
+      const { data, error } = await db.createJobOpening(jobData);
+      if (error) throw error;
+
+      // Refresh the job list
+      if (onJobCreated) {
+        await onJobCreated();
+      }
+      
+      onClose();
+    } catch (error) {
+      setError(error.message);
+      console.error('Error creating job opening:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmitOld = (e) => {
     e.preventDefault();
     const jobData = {
       ...formData,
       requirements: formData.requirements.filter(req => req.trim() !== ''),
-      skills: formData.skills.filter(skill => skill.trim() !== '')
+      required_skills: formData.required_skills.filter(skill => skill.trim() !== '')
     };
-    addJobOpening(jobData);
+    // addJobOpening(jobData);
     onClose();
   };
 
@@ -51,21 +87,21 @@ function JobCreationModal({ onClose }) {
   const addSkill = () => {
     setFormData(prev => ({
       ...prev,
-      skills: [...prev.skills, '']
+      required_skills: [...prev.required_skills, '']
     }));
   };
 
   const updateSkill = (index, value) => {
     setFormData(prev => ({
       ...prev,
-      skills: prev.skills.map((skill, i) => i === index ? value : skill)
+      required_skills: prev.required_skills.map((skill, i) => i === index ? value : skill)
     }));
   };
 
   const removeSkill = (index) => {
     setFormData(prev => ({
       ...prev,
-      skills: prev.skills.filter((_, i) => i !== index)
+      required_skills: prev.required_skills.filter((_, i) => i !== index)
     }));
   };
 
@@ -82,8 +118,14 @@ function JobCreationModal({ onClose }) {
           </button>
         </div>
 
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mx-6">
+            <p className="text-red-600">{error}</p>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
+          <div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Job Title *
@@ -93,19 +135,6 @@ function JobCreationModal({ onClose }) {
                 required
                 value={formData.title}
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Company Name *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.company}
-                onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
@@ -162,7 +191,7 @@ function JobCreationModal({ onClose }) {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Required Skills
             </label>
-            {formData.skills.map((skill, index) => (
+            {formData.required_skills.map((skill, index) => (
               <div key={index} className="flex items-center space-x-2 mb-2">
                 <input
                   type="text"
@@ -171,7 +200,7 @@ function JobCreationModal({ onClose }) {
                   className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   placeholder="Enter skill"
                 />
-                {formData.skills.length > 1 && (
+                {formData.required_skills.length > 1 && (
                   <button
                     type="button"
                     onClick={() => removeSkill(index)}
@@ -261,9 +290,17 @@ function JobCreationModal({ onClose }) {
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200"
+              disabled={loading}
+              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-indigo-400 transition-colors duration-200 flex items-center space-x-2"
             >
-              Create Job Opening
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>Creating...</span>
+                </>
+              ) : (
+                <span>Create Job Opening</span>
+              )}
             </button>
           </div>
         </form>

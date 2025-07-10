@@ -1,17 +1,62 @@
 import React, { useState } from 'react';
-import { useApp } from '../context/AppContext';
+import { useParams } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { db } from '../lib/supabase';
 import { Plus, Eye, Users, BarChart3, MapPin, Clock, DollarSign, Calendar } from 'lucide-react';
 import JobCreationModal from '../components/JobCreationModal';
 import CandidateAnalytics from '../components/CandidateAnalytics';
 
 function RecruiterDashboard() {
-  const { jobOpenings, candidates } = useApp();
+  const { organizationId } = useParams();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('jobs');
   const [showJobModal, setShowJobModal] = useState(false);
+  const [jobOpenings, setJobOpenings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const getApplicationsCount = (jobId) => {
-    return candidates.filter(candidate => candidate.appliedJobs.includes(jobId)).length;
+  // Load job openings for this organization
+  React.useEffect(() => {
+    loadJobOpenings();
+  }, [organizationId]);
+
+  const loadJobOpenings = async () => {
+    if (!organizationId) return;
+    
+    try {
+      setLoading(true);
+      const { data, error } = await db.getOrganizationJobs(organizationId);
+      if (error) throw error;
+      setJobOpenings(data || []);
+    } catch (error) {
+      setError('Failed to load job openings');
+      console.error('Error loading job openings:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const getApplicationsCount = async (jobId) => {
+    try {
+      const { data, error } = await db.getJobApplications(jobId);
+      if (error) throw error;
+      return data ? data.length : 0;
+    } catch (error) {
+      console.error('Error getting applications count:', error);
+      return 0;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-6 sm:py-8">
@@ -20,6 +65,12 @@ function RecruiterDashboard() {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Recruiter Dashboard</h1>
           <p className="text-gray-600 text-sm sm:text-base">Manage your job openings and analyze candidate performance</p>
         </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-600">{error}</p>
+          </div>
+        )}
 
         {/* Tab Navigation */}
         <div className="mb-6 sm:mb-8">
@@ -135,7 +186,11 @@ function RecruiterDashboard() {
 
         {/* Job Creation Modal */}
         {showJobModal && (
-          <JobCreationModal onClose={() => setShowJobModal(false)} />
+          <JobCreationModal 
+            organizationId={organizationId}
+            onClose={() => setShowJobModal(false)}
+            onJobCreated={loadJobOpenings}
+          />
         )}
       </div>
     </div>

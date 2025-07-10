@@ -1,20 +1,64 @@
 import React, { useState } from 'react';
-import { useApp } from '../context/AppContext';
+import { useParams } from 'react-router-dom';
+import { db } from '../lib/supabase';
 import { User, Github, Award, Target, Eye, Filter, Brain, TrendingUp, AlertTriangle } from 'lucide-react';
 
 function CandidateAnalytics() {
-  const { candidates, jobOpenings } = useApp();
+  const { organizationId } = useParams();
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [filterJob, setFilterJob] = useState('all');
+  const [candidates, setCandidates] = useState([]);
+  const [jobOpenings, setJobOpenings] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    loadData();
+  }, [organizationId]);
+
+  const loadData = async () => {
+    if (!organizationId) return;
+    
+    try {
+      // Load job openings for this organization
+      const { data: jobs, error: jobsError } = await db.getOrganizationJobs(organizationId);
+      if (jobsError) throw jobsError;
+      setJobOpenings(jobs || []);
+
+      // Load applications for all jobs in this organization
+      const allApplications = [];
+      for (const job of jobs || []) {
+        const { data: applications, error: appsError } = await db.getJobApplications(job.id);
+        if (!appsError && applications) {
+          allApplications.push(...applications);
+        }
+      }
+      setCandidates(allApplications);
+    } catch (error) {
+      console.error('Error loading analytics data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredCandidates = filterJob === 'all' 
     ? candidates 
-    : candidates.filter(candidate => candidate.appliedJobs.includes(parseInt(filterJob)));
+    : candidates.filter(candidate => candidate.job_opening_id === filterJob);
 
   const getJobTitle = (jobId) => {
     const job = jobOpenings.find(job => job.id === jobId);
     return job ? job.title : 'Unknown Position';
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading analytics...</p>
+        </div>
+      </div>
+    );
+  }
 
   const PersonalityRadarChart = ({ traits }) => {
     const maxValue = 100;
