@@ -127,9 +127,6 @@ function AppContent() {
 }
 
 function App() {
-        }
-    )
-  }
   return (
     <AuthProvider>
       <AppProvider>
