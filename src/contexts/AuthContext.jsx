@@ -41,7 +41,6 @@ export function AuthProvider({ children }) {
 
   const loadUserProfile = async (userId) => {
     try {
-      setLoading(true);
       // Try to find user as recruiter first
       try {
         const { data: recruiter, error: recruiterError } = await db.getRecruiter(userId);
@@ -49,7 +48,6 @@ export function AuthProvider({ children }) {
         if (recruiter && !recruiterError) {
           setUserProfile(recruiter);
           setUserType('recruiter');
-          setLoading(false);
           return;
         }
       } catch (recruiterError) {
@@ -63,7 +61,6 @@ export function AuthProvider({ children }) {
         if (candidate && !candidateError) {
           setUserProfile(candidate);
           setUserType('candidate');
-          setLoading(false);
           return;
         }
       } catch (candidateError) {
@@ -74,11 +71,11 @@ export function AuthProvider({ children }) {
       console.warn('User found in auth but not in database tables');
       setUserProfile(null);
       setUserType(null);
-      setLoading(false);
     } catch (error) {
       console.error('Error loading user profile:', error);
       setUserProfile(null);
       setUserType(null);
+    } finally {
       setLoading(false);
     }
   };

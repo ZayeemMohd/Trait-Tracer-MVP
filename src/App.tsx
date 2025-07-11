@@ -37,14 +37,6 @@ function AppContent() {
         }, 100);
       }
     }
-    
-    // Handle case where user is authenticated but profile loading failed
-    if (!loading && user && !userType) {
-      const currentPath = window.location.pathname;
-      if (currentPath.includes('/auth')) {
-        console.error('Unable to load user profile. Please try again.');
-      }
-    }
   }, [user, userType, loading, navigate]);
 
   // Show loading screen while auth is being resolved
