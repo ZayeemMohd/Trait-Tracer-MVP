@@ -37,6 +37,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const loadUserProfile = async (userId) => {
+    try {
       // Try to find user as recruiter first
       try {
         const { data: recruiter, error: recruiterError } = await db.getRecruiter(userId);
