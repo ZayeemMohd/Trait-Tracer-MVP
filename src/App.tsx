@@ -21,23 +21,20 @@ function AppContent() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Only handle navigation after auth state is fully resolved
-    if (!loading && user) {
+    // Handle navigation when user state changes
+    if (user && userType) {
       const currentPath = window.location.pathname;
       
       // If user is on auth page and successfully authenticated, redirect to appropriate dashboard
       if (currentPath.includes('/auth')) {
-        // Add a small delay to ensure state is fully updated
-        setTimeout(() => {
-          if (userType === 'recruiter') {
-            navigate('/recruiter/organizations');
-          } else if (userType === 'candidate') {
-            navigate('/candidate/dashboard');
-          }
-        }, 100);
+        if (userType === 'recruiter') {
+          navigate('/recruiter/organizations');
+        } else if (userType === 'candidate') {
+          navigate('/candidate/dashboard');
+        }
       }
     }
-  }, [user, userType, loading, navigate]);
+  }, [user, userType, navigate]);
 
 
   return (

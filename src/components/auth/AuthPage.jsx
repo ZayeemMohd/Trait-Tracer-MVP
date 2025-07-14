@@ -27,14 +27,12 @@ function AuthPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
     setPasswordError('');
 
     // Validate password length for sign up
     if (isSignUp && formData.password.length < 6) {
       setPasswordError('Password must be at least 6 characters long');
-      setLoading(false);
       return;
     }
 
@@ -54,20 +52,22 @@ function AuthPage() {
         
         if (error) throw error;
 
-        // Success - auth state change will handle navigation
+        // Navigate immediately after successful signup
+        if (userType === 'recruiter') {
+          navigate('/recruiter/organizations');
+        } else {
+          navigate('/candidate/dashboard');
+        }
       } else {
         const { data, error } = await signIn(formData.email, formData.password);
         
         if (error) throw error;
 
-        // Success - auth state change will handle navigation
+        // The auth state change will handle navigation
       }
     } catch (error) {
       console.error('Authentication error:', error);
       setError(error.message);
-      setLoading(false);
-    } finally {
-      // Don't set loading to false here - let auth state change handle it
     }
   };
 

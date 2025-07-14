@@ -7,7 +7,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [userType, setUserType] = useState(null); // 'recruiter' or 'candidate'
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [session, setSession] = useState(null);
 
   useEffect(() => {
@@ -16,8 +16,6 @@ export function AuthProvider({ children }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        loadUserProfile(session.user.id);
-      } else {
         setLoading(false);
       }
     });
@@ -31,7 +29,6 @@ export function AuthProvider({ children }) {
         await loadUserProfile(session.user.id);
       } else {
         setUserProfile(null);
-        setUserType(null);
         setLoading(false);
       }
     });
@@ -40,7 +37,6 @@ export function AuthProvider({ children }) {
   }, []);
 
   const loadUserProfile = async (userId) => {
-    try {
       // Try to find user as recruiter first
       try {
         const { data: recruiter, error: recruiterError } = await db.getRecruiter(userId);
@@ -75,12 +71,11 @@ export function AuthProvider({ children }) {
       console.error('Error loading user profile:', error);
       setUserProfile(null);
       setUserType(null);
-    } finally {
-      setLoading(false);
     }
   };
 
   const signUp = async (email, password, userData, type) => {
+    setLoading(true);
     try {
       const { data, error } = await auth.signUp(email, password, {
         data: userData
@@ -100,33 +95,39 @@ export function AuthProvider({ children }) {
           const { error: profileError } = await db.createRecruiter(profileData);
           if (profileError) throw profileError;
           
-          // Set user type immediately after successful creation
           setUserType('recruiter');
+          setUserProfile(profileData);
         } else if (type === 'candidate') {
           const { error: profileError } = await db.createCandidate(profileData);
           if (profileError) throw profileError;
           
-          // Set user type immediately after successful creation
           setUserType('candidate');
+          setUserProfile(profileData);
         }
       }
 
       return { data, error: null };
     } catch (error) {
       return { data: null, error };
+    } finally {
+      setLoading(false);
     }
   };
 
   const signIn = async (email, password) => {
+    setLoading(true);
     try {
       const { data, error } = await auth.signIn(email, password);
       return { data, error };
     } catch (error) {
       return { data: null, error };
+    } finally {
+      setLoading(false);
     }
   };
 
   const signOut = async () => {
+    setLoading(true);
     try {
       // Clear local state first
       setUser(null);
@@ -139,6 +140,8 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error('Sign out error:', error);
       return { error };
+    } finally {
+      setLoading(false);
     }
   };
 
