@@ -1,26 +1,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { Brain, Target, BarChart3, Users, Zap, Shield, CheckCircle, Star } from 'lucide-react';
 
 function LandingPage() {
   const navigate = useNavigate();
-  const { user, userType } = useAuth();
 
   const handleRecruiterClick = () => {
-    if (user && userType === 'recruiter') {
-      navigate('/recruiter/organizations');
-    } else {
-      navigate('/auth?type=recruiter');
-    }
+    navigate('/recruiter');
   };
 
   const handleCandidateClick = () => {
-    if (user && userType === 'candidate') {
-      navigate('/candidate/dashboard');
-    } else {
-      navigate('/auth?type=candidate');
-    }
+    navigate('/candidate');
   };
 
   return (
