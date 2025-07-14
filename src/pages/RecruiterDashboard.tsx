@@ -1,62 +1,92 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { db } from '../lib/supabase';
+import { useApp } from '../context/AppContext';
 import { Plus, Eye, Users, BarChart3, MapPin, Clock, DollarSign, Calendar } from 'lucide-react';
-import JobCreationModal from '../components/JobCreationModal';
-import CandidateAnalytics from '../components/CandidateAnalytics';
 
 function RecruiterDashboard() {
-  const { organizationId } = useParams();
-  const { user } = useAuth();
+  const { jobOpenings, addJobOpening, candidates } = useApp();
   const [activeTab, setActiveTab] = useState('jobs');
   const [showJobModal, setShowJobModal] = useState(false);
-  const [jobOpenings, setJobOpenings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
+    title: '',
+    company: '',
+    description: '',
+    requirements: [''],
+    skills: [''],
+    experience: 'Mid',
+    type: 'Full-time',
+    location: '',
+    salary: ''
+  });
 
-  // Load job openings for this organization
-  React.useEffect(() => {
-    loadJobOpenings();
-  }, [organizationId]);
-
-  const loadJobOpenings = async () => {
-    if (!organizationId) return;
-    
-    try {
-      setLoading(true);
-      const { data, error } = await db.getOrganizationJobs(organizationId);
-      if (error) throw error;
-      setJobOpenings(data || []);
-    } catch (error) {
-      setError('Failed to load job openings');
-      console.error('Error loading job openings:', error);
-    } finally {
-      setLoading(false);
-    }
+  const getApplicationsCount = (jobId) => {
+    return candidates.filter(candidate => 
+      candidate.appliedJobs && candidate.appliedJobs.includes(jobId)
+    ).length;
   };
 
-  const getApplicationsCount = async (jobId) => {
-    try {
-      const { data, error } = await db.getJobApplications(jobId);
-      if (error) throw error;
-      return data ? data.length : 0;
-    } catch (error) {
-      console.error('Error getting applications count:', error);
-      return 0;
-    }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const jobData = {
+      ...formData,
+      requirements: formData.requirements.filter(req => req.trim() !== ''),
+      skills: formData.skills.filter(skill => skill.trim() !== '')
+    };
+    addJobOpening(jobData);
+    setShowJobModal(false);
+    setFormData({
+      title: '',
+      company: '',
+      description: '',
+      requirements: [''],
+      skills: [''],
+      experience: 'Mid',
+      type: 'Full-time',
+      location: '',
+      salary: ''
+    });
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
+  const addRequirement = () => {
+    setFormData(prev => ({
+      ...prev,
+      requirements: [...prev.requirements, '']
+    }));
+  };
+
+  const updateRequirement = (index, value) => {
+    setFormData(prev => ({
+      ...prev,
+      requirements: prev.requirements.map((req, i) => i === index ? value : req)
+    }));
+  };
+
+  const removeRequirement = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      requirements: prev.requirements.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addSkill = () => {
+    setFormData(prev => ({
+      ...prev,
+      skills: [...prev.skills, '']
+    }));
+  };
+
+  const updateSkill = (index, value) => {
+    setFormData(prev => ({
+      ...prev,
+      skills: prev.skills.map((skill, i) => i === index ? value : skill)
+    }));
+  };
+
+  const removeSkill = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      skills: prev.skills.filter((_, i) => i !== index)
+    }));
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-6 sm:py-8">
@@ -65,12 +95,6 @@ function RecruiterDashboard() {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Recruiter Dashboard</h1>
           <p className="text-gray-600 text-sm sm:text-base">Manage your job openings and analyze candidate performance</p>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-600">{error}</p>
-          </div>
-        )}
 
         {/* Tab Navigation */}
         <div className="mb-6 sm:mb-8">
@@ -182,15 +206,94 @@ function RecruiterDashboard() {
         )}
 
         {/* Analytics Tab */}
-        {activeTab === 'analytics' && <CandidateAnalytics />}
+        {activeTab === 'analytics' && (
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Candidate Analytics</h3>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {candidates.map(candidate => (
+                <div key={candidate.id} className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-medium text-gray-900 mb-2">{candidate.personalInfo.fullName}</h4>
+                  <p className="text-sm text-gray-600 mb-2">{candidate.personalInfo.email}</p>
+                  {candidate.testResults?.completed && (
+                    <div className="text-sm">
+                      <span className="text-indigo-600 font-medium">
+                        Score: {candidate.testResults.overallScore || candidate.testResults.score}%
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-        {/* Job Creation Modal */}
+        {/* Simple Job Creation Modal */}
         {showJobModal && (
-          <JobCreationModal 
-            organizationId={organizationId}
-            onClose={() => setShowJobModal(false)}
-            onJobCreated={loadJobOpenings}
-          />
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-screen overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b">
+                <h2 className="text-2xl font-bold text-gray-900">Create Job Opening</h2>
+                <button
+                  onClick={() => setShowJobModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Job Title *</label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.title}
+                      onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Company *</label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.company}
+                      onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+                  <textarea
+                    required
+                    rows={4}
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div className="flex justify-end space-x-4 pt-6 border-t">
+                  <button
+                    type="button"
+                    onClick={() => setShowJobModal(false)}
+                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                  >
+                    Create Job Opening
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         )}
       </div>
     </div>
